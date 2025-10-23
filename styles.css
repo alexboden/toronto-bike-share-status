@@ -225,22 +225,14 @@ h1 {
 }
 
 .refresh-container {
-    position: sticky;
-    bottom: 0;
-    margin-top: auto;
     display: flex;
-    justify-content: flex-end;
-    padding-top: 24px;
-    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-    background: linear-gradient(180deg, rgba(17, 24, 39, 0), rgba(17, 24, 39, 0.85) 60%, rgba(17, 24, 39, 1) 100%);
-    padding-right: calc(4px + env(safe-area-inset-right, 0px));
-    pointer-events: none;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 32px;
 }
 
 .refresh-btn {
-    position: fixed;
-    top: calc(16px + env(safe-area-inset-top, 0px));
-    right: calc(20px + env(safe-area-inset-right, 0px));
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -253,13 +245,38 @@ h1 {
     box-shadow: 0 12px 24px rgba(37, 99, 235, 0.35);
     transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     font-size: 20px;
-    pointer-events: auto;
 }
 
 .refresh-btn:hover {
     transform: translateY(-2px);
     background: #1e40af;
     box-shadow: 0 18px 32px rgba(30, 64, 175, 0.35);
+}
+
+.app-btn {
+    display: inline-block;
+    width: 48px;
+    height: 48px;
+    background: #007AFF;
+    color: white;
+    text-decoration: none;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 48px;
+    font-size: 20px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+.app-btn:hover {
+    background: #0051D5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+}
+
+.app-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 122, 255, 0.3);
 }
 
 @media (max-width: 520px) {
@@ -287,8 +304,6 @@ h1 {
     }
 
     .refresh-btn {
-        top: calc(12px + env(safe-area-inset-top, 0px));
-        right: calc(16px + env(safe-area-inset-right, 0px));
         width: 40px;
         height: 40px;
         font-size: 18px;

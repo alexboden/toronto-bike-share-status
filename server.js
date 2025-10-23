@@ -228,11 +228,11 @@ function generateHTML(stations) {
                     <span class="metric bikes ${bikes === 0 ? 'empty' : ''}">
                         🚲 ${bikes}
                     </span>
-                    <span class="metric ebikes ${ebikes === 0 ? 'empty' : ''}">
-                        ⚡ ${ebikes}
-                    </span>
                     <span class="metric docks ${docks === 0 ? 'empty' : ''}">
                         🅿️ ${docks}
+                    </span>
+                    <span class="metric ebikes ${ebikes === 0 ? 'empty' : ''}">
+                        ⚡ ${ebikes}
                     </span>
                     <span class="metric meta">⏱ ${lastTime}</span>
                 </div>
@@ -293,6 +293,7 @@ function generateHTML(stations) {
         ${sectionsHTML}
         <div class="refresh-container">
             <a href="/" class="refresh-btn" title="Refresh">↻</a>
+            <a href="https://apps.apple.com/us/app/bike-share-toronto/id6499236069" class="app-btn" title="Open in App">📱</a>
         </div>
     </div>
     <script>

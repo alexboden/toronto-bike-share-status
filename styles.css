@@ -39,7 +39,10 @@ body.empty-page {
 .page {
     max-width: 640px;
     margin: 0 auto;
-    padding: 32px 20px 88px;
+    padding: 32px 20px 24px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 h1 {
@@ -221,10 +224,23 @@ h1 {
     background: transparent;
 }
 
+.refresh-container {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 24px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(180deg, rgba(17, 24, 39, 0), rgba(17, 24, 39, 0.85) 60%, rgba(17, 24, 39, 1) 100%);
+    padding-right: calc(4px + env(safe-area-inset-right, 0px));
+    pointer-events: none;
+}
+
 .refresh-btn {
     position: fixed;
-    bottom: 24px;
-    right: 20px;
+    top: calc(16px + env(safe-area-inset-top, 0px));
+    right: calc(20px + env(safe-area-inset-right, 0px));
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -237,6 +253,7 @@ h1 {
     box-shadow: 0 12px 24px rgba(37, 99, 235, 0.35);
     transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     font-size: 20px;
+    pointer-events: auto;
 }
 
 .refresh-btn:hover {
@@ -247,7 +264,7 @@ h1 {
 
 @media (max-width: 520px) {
     .page {
-        padding: 24px 16px 88px;
+        padding: 24px 16px 16px;
     }
 
     .station {
@@ -263,8 +280,17 @@ h1 {
         margin-left: 0;
     }
 
+    .refresh-container {
+        padding-top: 20px;
+        padding-bottom: 12px;
+        padding-right: 0;
+    }
+
     .refresh-btn {
-        right: 16px;
-        bottom: 16px;
+        top: calc(12px + env(safe-area-inset-top, 0px));
+        right: calc(16px + env(safe-area-inset-right, 0px));
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
     }
 }

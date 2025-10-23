@@ -291,8 +291,10 @@ function generateHTML(stations) {
             <strong>${isLive ? 'Live' : 'Stale'} feed</strong> • ${relativeLastUpdated === 'N/A' ? 'No update time' : `Updated ${relativeLastUpdated} ago`} • ${absoluteLastUpdated}
         </p>
         ${sectionsHTML}
+        <div class="refresh-container">
+            <a href="/" class="refresh-btn" title="Refresh">↻</a>
+        </div>
     </div>
-    <a href="/" class="refresh-btn" title="Refresh">↻</a>
     <script>
         setTimeout(() => window.location.reload(), 120000);
     </script>

@@ -4,7 +4,7 @@ const path = require('path');
 
 const STYLES_PATH = path.join(__dirname, 'styles.css');
 
-const SPOTS = require('./spots');
+const stations = require('./spots');
 
 async function serveStaticFile(res, filePath, contentType = 'application/octet-stream') {
     try {
@@ -316,7 +316,7 @@ const server = http.createServer(async (req, res) => {
         await serveStaticFile(res, STYLES_PATH, 'text/css; charset=utf-8');
     } else if (requestPath === '/') {
         try {
-            const results = await getStationIdsByNames(SPOTS);
+            const results = await getStationIdsByNames(stations);
             const stationInfo = await getStationInfo(results);
             
             res.writeHead(200, { 'Content-Type': 'text/html' });

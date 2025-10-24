@@ -1,4 +1,4 @@
-const SPOTS = [
+const stations = [
     // HOME
     { fullName: "Central Tech  (Harbord St)", shortName: "Central Tech", section: "🏠 Home", isPrimary: true },
     { fullName: "Ulster St / Bathurst St", shortName: "Ulster & Bathurst", section: "🏠 Home", isPrimary: false },
@@ -14,4 +14,4 @@ const SPOTS = [
     { fullName: "Front St W / Yonge St (Hockey Hall of Fame)", shortName: "Front & Yonge", section: "💼 Work", isPrimary: false }
 ];
 
-module.exports = SPOTS;
+module.exports = stations;

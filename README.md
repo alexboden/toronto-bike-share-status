@@ -1,4 +1,4 @@
-# Bike Share Snapshot
+# Bike Share Status
 
 This project is a minimal Node.js server that renders a live snapshot your favourite Toronto Bike Share stations for easy viewing.
 

@@ -1,6 +1,8 @@
 # Bike Share Snapshot
 
-This project is a minimal Node.js server that renders a live snapshot of favorite Toronto Bike Share stations. It pulls real-time station status and metadata from the official GBFS feeds and presents them in a single-page view grouped by context (home, pool, work, etc.).
+This project is a minimal Node.js server that renders a live snapshot your favourite Toronto Bike Share stations for easy viewing.
+
+There is also a standalone script, `compact-widget.js`, that can be embedded as an iOS widget. You can run JavaScript code in a widget using [Scriptable](https://scriptable.app/).
 
 ## Getting Started
 
@@ -18,6 +20,16 @@ docker run -p 3000:3000 bike-share-snapshot
 
 Then open `http://localhost:3000`
 
+## Screenshots
+![Web Screenshot](website.png)
+> Mobile website view
+
+![Mobile Screenshot](widget.jpg)
+> Mobile widget view
+
+
 ## Customizing Stations
 
 Edit the `SPOTS` in `spots.js` to change which stations are tracked or how they are grouped. Each entry supports `fullName`, `shortName`, `section`, and `isPrimary` fields.
+
+Contributions are welcome!

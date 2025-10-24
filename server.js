@@ -271,7 +271,12 @@ function generateHTML(stations) {
 
     const relativeLastUpdated = lastReported ? formatTimeAgo(lastReported) : 'N/A';
     const absoluteLastUpdated = lastReported
-        ? new Date(lastReported * 1000).toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' })
+        ? new Date(lastReported * 1000).toLocaleTimeString('en-CA', {
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'America/Toronto',
+            timeZoneName: 'short'
+        })
         : '—';
     const isLive = lastReported && Math.floor(Date.now() / 1000) - lastReported <= 600;
 
@@ -327,7 +332,7 @@ const server = http.createServer(async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}/`);
 });

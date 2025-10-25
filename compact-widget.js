@@ -1,5 +1,5 @@
-// 🚲 Compact Toronto Bike Share Widget — grouped + reordered
-// by Alex Boden
+// Compact Toronto Bike Share Widget
+// Built for Scriptable
 
 const SECTIONS = [
   { name: "🏠 Home", stations: [{ name: "Central Tech  (Harbord St)", short: "Home" }] },

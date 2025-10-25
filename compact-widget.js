@@ -1,5 +1,6 @@
 // Compact Toronto Bike Share Widget
 // Built for Scriptable
+// Find other stations by querying the API endpoint: "https://tor.publicbikesystem.net/ube/gbfs/v1/en/station_information"
 
 const SECTIONS = [
   { name: "🏠 Home", stations: [{ name: "Central Tech  (Harbord St)", short: "Home" }] },

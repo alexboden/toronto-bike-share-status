@@ -38,6 +38,6 @@ Then open `http://localhost:3000`
 
 ## Customizing Stations
 
-Edit the `stations` in `spots.js` to change which stations are tracked or how they are grouped. Each entry supports `fullName`, `shortName`, `section`, and `isPrimary` fields.
+Edit the `stations` in `stations.js` to change which stations are tracked or how they are grouped. Each entry supports `fullName`, `shortName`, `section`, and `isPrimary` fields.
 
 Contributions are welcome!

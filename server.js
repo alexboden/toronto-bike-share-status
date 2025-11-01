@@ -4,7 +4,7 @@ const path = require('path');
 
 const STYLES_PATH = path.join(__dirname, 'styles.css');
 
-const stations = require('./spots');
+const stations = require('./stations');
 
 async function serveStaticFile(res, filePath, contentType = 'application/octet-stream') {
     try {
@@ -96,14 +96,14 @@ async function getStationIdsByNames(stationNames) {
       nameToIdMap.set(station.name, station.station_id);
     });
     
-    const result = stationNames.map(spot => {
-      const stationId = nameToIdMap.get(spot.fullName);
+    const result = stationNames.map(station => {
+      const stationId = nameToIdMap.get(station.fullName);
       return {
-        name: spot.fullName,
-        shortName: spot.shortName,
+        name: station.fullName,
+        shortName: station.shortName,
         station_id: stationId || null,
-        section: spot.section,
-        isPrimary: spot.isPrimary
+        section: station.section,
+        isPrimary: station.isPrimary
       };
     });
     

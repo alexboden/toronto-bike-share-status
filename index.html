@@ -254,6 +254,43 @@
         return favorites.includes(stationId);
       }
 
+      function fuzzyMatch(text, query) {
+        text = text.toLowerCase();
+        query = query.toLowerCase();
+
+        // Exact substring match gets highest score
+        if (text.includes(query)) {
+          return { match: true, score: 100 + (query.length / text.length) * 50 };
+        }
+
+        // Fuzzy matching: check if all query chars appear in order
+        let textIdx = 0;
+        let queryIdx = 0;
+        let score = 0;
+        let consecutiveBonus = 0;
+
+        while (textIdx < text.length && queryIdx < query.length) {
+          if (text[textIdx] === query[queryIdx]) {
+            score += 10 + consecutiveBonus;
+            consecutiveBonus += 5; // Reward consecutive matches
+            queryIdx++;
+          } else {
+            consecutiveBonus = 0;
+          }
+          textIdx++;
+        }
+
+        // All query characters must be found
+        if (queryIdx === query.length) {
+          // Penalize long gaps between matches
+          const matchRatio = query.length / text.length;
+          score += matchRatio * 20;
+          return { match: true, score };
+        }
+
+        return { match: false, score: 0 };
+      }
+
       async function fetchStations() {
         const listEl = document.getElementById('station-list');
         listEl.innerHTML = '<div class="loading">Loading stations...</div>';
@@ -305,9 +342,11 @@
         }
 
         if (searchQuery) {
-          filtered = filtered.filter(s =>
-            s.name.toLowerCase().includes(searchQuery.toLowerCase())
-          );
+          filtered = filtered
+            .map(s => ({ station: s, ...fuzzyMatch(s.name, searchQuery) }))
+            .filter(s => s.match)
+            .sort((a, b) => b.score - a.score)
+            .map(s => s.station);
         }
 
         if (filtered.length === 0) {

@@ -1,8 +1,6 @@
 # Toronto Bike Share Status
 
-## Screenshots
-### Website
-<img src="website.png" alt="Mobile website view" width="340">
+Website: [toronto-bike-share-status.alexboden.ca](https://toronto-bike-share-status.alexboden.ca/)
 
 ### Widget
 <img src="widget.jpg" alt="Mobile widget view" width="320">

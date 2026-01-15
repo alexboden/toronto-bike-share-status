@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+          content="connect-src 'self' https://tor.publicbikesystem.net;">
+    <title>Toronto Bike Share - Favorites</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      h1 {
+        color: #333;
+        margin-bottom: 20px;
+      }
+      .controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 14px;
+        cursor: pointer;
+        border: none;
+        border-radius: 6px;
+        background: #007bff;
+        color: white;
+        transition: background 0.2s;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 0;
+        background: #e9ecef;
+        padding: 6px;
+        border-radius: 8px 8px 0 0;
+      }
+      .tab {
+        padding: 10px 20px;
+        background: transparent;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #666;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+      .tab:hover {
+        color: #333;
+        background: rgba(255, 255, 255, 0.5);
+      }
+      .tab.active {
+        color: #007bff;
+        background: white;
+        font-weight: 600;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      }
+      .tab-note {
+        font-size: 12px;
+        color: #888;
+        margin-left: auto;
+        align-self: center;
+        padding-right: 10px;
+      }
+      .station-list {
+        background: white;
+        border-radius: 0 0 8px 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+      }
+      .station {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        border-bottom: 1px solid #eee;
+      }
+      .station:last-child {
+        border-bottom: none;
+      }
+      .station-info {
+        flex: 1;
+      }
+      .station-name {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+      }
+      .station-stats {
+        font-size: 14px;
+        color: #666;
+      }
+      .bikes {
+        color: #28a745;
+      }
+      .ebikes {
+        color: #ff9800;
+      }
+      .docks {
+        color: #007bff;
+      }
+      .favorite-btn {
+        background: none;
+        border: 2px solid #ffc107;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        padding: 0;
+        cursor: pointer;
+      }
+      .favorite-btn.favorited {
+        background: #ffc107;
+      }
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+      }
+      .empty {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+      }
+      .search {
+        padding: 10px 15px;
+        font-size: 14px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        flex: 1;
+        min-width: 200px;
+      }
+      .info-section {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .info-section h2 {
+        margin: 0 0 12px 0;
+        font-size: 18px;
+        color: #333;
+      }
+      .info-section p {
+        margin: 0 0 10px 0;
+        color: #666;
+        line-height: 1.5;
+      }
+      .info-section p:last-child {
+        margin-bottom: 0;
+      }
+      .info-section ul {
+        margin: 0;
+        padding-left: 20px;
+        color: #666;
+      }
+      .info-section li {
+        margin-bottom: 6px;
+      }
+      .info-toggle {
+        background: none;
+        border: 1px solid #ddd;
+        color: #666;
+        padding: 8px 16px;
+        font-size: 13px;
+      }
+      .info-toggle:hover {
+        background: #f5f5f5;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🚲 Toronto Bike Share</h1>
+
+    <div class="info-section" id="info-section">
+      <h2>About This App</h2>
+      <p>Track real-time bike and dock availability at Toronto Bike Share stations. Save your frequently used stations as favorites for quick access.</p>
+      <ul>
+        <li><strong>Real-time data</strong> — Station availability updates from the official Toronto Bike Share API</li>
+        <li><strong>Favorites</strong> — Click the ★ button to save stations. Your favorites are stored locally in your browser and won't sync across devices</li>
+        <li><strong>Search</strong> — Filter stations by name to quickly find what you need</li>
+      </ul>
+    </div>
+
+    <div class="controls">
+      <input type="text" class="search" id="search" placeholder="Search stations...">
+      <button id="refresh">Refresh Data</button>
+      <button class="info-toggle" id="toggle-info">About</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="all">All Stations</button>
+      <button class="tab" data-tab="favorites">Favorites</button>
+      <span class="tab-note">Favorites are stored on your device only</span>
+    </div>
+
+    <div class="station-list" id="station-list">
+      <div class="loading">Click "Refresh Data" to load stations...</div>
+    </div>
+
+    <script>
+      const FAVORITES_KEY = 'bike-share-favorites';
+      const STATION_INFO_URL = 'https://tor.publicbikesystem.net/ube/gbfs/v1/en/station_information';
+      const STATION_STATUS_URL = 'https://tor.publicbikesystem.net/ube/gbfs/v1/en/station_status';
+
+      let stations = [];
+      let favorites = loadFavorites();
+      let currentTab = favorites.length > 0 ? 'favorites' : 'all';
+      let searchQuery = '';
+
+      function loadFavorites() {
+        try {
+          return JSON.parse(localStorage.getItem(FAVORITES_KEY)) || [];
+        } catch {
+          return [];
+        }
+      }
+
+      function saveFavorites() {
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+      }
+
+      function toggleFavorite(stationId) {
+        const index = favorites.indexOf(stationId);
+        if (index === -1) {
+          favorites.push(stationId);
+        } else {
+          favorites.splice(index, 1);
+        }
+        saveFavorites();
+        renderStations();
+      }
+
+      function isFavorite(stationId) {
+        return favorites.includes(stationId);
+      }
+
+      async function fetchStations() {
+        const listEl = document.getElementById('station-list');
+        listEl.innerHTML = '<div class="loading">Loading stations...</div>';
+
+        try {
+          const [infoRes, statusRes] = await Promise.all([
+            fetch(STATION_INFO_URL),
+            fetch(STATION_STATUS_URL)
+          ]);
+
+          const infoData = await infoRes.json();
+          const statusData = await statusRes.json();
+
+          const stationInfo = {};
+          infoData.data.stations.forEach(s => {
+            stationInfo[s.station_id] = s;
+          });
+
+          stations = statusData.data.stations.map(s => {
+            const bikeTypes = s.vehicle_types_available || [];
+            const mechanical = bikeTypes.find(v => v.vehicle_type_id === 'ICONIC')?.count || 0;
+            const ebikes = bikeTypes.find(v => v.vehicle_type_id === 'BOOST' || v.vehicle_type_id === 'EFIT' || v.vehicle_type_id === 'EFIT_G5')?.count ||
+                           bikeTypes.filter(v => v.vehicle_type_id !== 'ICONIC').reduce((sum, v) => sum + v.count, 0);
+            return {
+              id: s.station_id,
+              name: stationInfo[s.station_id]?.name || `Station ${s.station_id}`,
+              bikes: s.num_bikes_available,
+              mechanical,
+              ebikes,
+              docks: s.num_docks_available,
+              isRenting: s.is_renting,
+              isReturning: s.is_returning
+            };
+          }).sort((a, b) => a.name.localeCompare(b.name));
+
+          renderStations();
+        } catch (error) {
+          listEl.innerHTML = `<div class="empty">Error loading stations: ${error.message}</div>`;
+        }
+      }
+
+      function renderStations() {
+        const listEl = document.getElementById('station-list');
+
+        let filtered = stations;
+
+        if (currentTab === 'favorites') {
+          filtered = stations.filter(s => isFavorite(s.id));
+        }
+
+        if (searchQuery) {
+          filtered = filtered.filter(s =>
+            s.name.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+        }
+
+        if (filtered.length === 0) {
+          if (currentTab === 'favorites' && favorites.length === 0) {
+            listEl.innerHTML = '<div class="empty">No favorite stations yet. Click the ★ button to add favorites.</div>';
+          } else if (searchQuery) {
+            listEl.innerHTML = '<div class="empty">No stations match your search.</div>';
+          } else {
+            listEl.innerHTML = '<div class="empty">No stations to display.</div>';
+          }
+          return;
+        }
+
+        listEl.innerHTML = filtered.map(station => `
+          <div class="station">
+            <div class="station-info">
+              <div class="station-name">${station.name}</div>
+              <div class="station-stats">
+                <span class="bikes">🚲 ${station.mechanical}</span> ·
+                <span class="ebikes">⚡ ${station.ebikes}</span> ·
+                <span class="docks">🅿️ ${station.docks}</span>
+              </div>
+            </div>
+            <button class="favorite-btn ${isFavorite(station.id) ? 'favorited' : ''}"
+                    onclick="toggleFavorite('${station.id}')">
+              ★
+            </button>
+          </div>
+        `).join('');
+      }
+
+      // Tab switching
+      function updateTabUI() {
+        document.querySelectorAll('.tab').forEach(t => {
+          t.classList.toggle('active', t.dataset.tab === currentTab);
+        });
+      }
+
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          currentTab = tab.dataset.tab;
+          updateTabUI();
+          renderStations();
+        });
+      });
+
+      // Set initial tab UI
+      updateTabUI();
+
+      // Search
+      document.getElementById('search').addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        renderStations();
+      });
+
+      // Refresh button
+      document.getElementById('refresh').addEventListener('click', fetchStations);
+
+      // Info section toggle
+      const INFO_VISIBLE_KEY = 'bike-share-info-visible';
+      const infoSection = document.getElementById('info-section');
+      const toggleInfoBtn = document.getElementById('toggle-info');
+
+      function updateInfoVisibility() {
+        const isVisible = localStorage.getItem(INFO_VISIBLE_KEY) === 'true';
+        infoSection.style.display = isVisible ? 'block' : 'none';
+        toggleInfoBtn.textContent = isVisible ? 'Hide About' : 'About';
+      }
+
+      updateInfoVisibility();
+
+      toggleInfoBtn.addEventListener('click', () => {
+        const isVisible = localStorage.getItem(INFO_VISIBLE_KEY) === 'true';
+        localStorage.setItem(INFO_VISIBLE_KEY, isVisible ? 'false' : 'true');
+        updateInfoVisibility();
+      });
+
+      // Load on page load
+      fetchStations();
+    </script>
+  </body>
+</html>

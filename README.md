@@ -9,35 +9,33 @@
 
 ## About
 
-A minimal Node.js server that renders a live snapshot your favourite Toronto Bike Share stations for easy viewing.
+A client-side web app to track real-time bike and dock availability at Toronto Bike Share stations. Save your frequently used stations as favorites for quick access.
 
-There is also a standalone script, `compact-widget.js`, that can be embedded as an iOS widget. You can run JavaScript code in a widget using [Scriptable](https://scriptable.app/).
+There is also a standalone script, `compact-widget.js`, that can be embedded as an iOS widget using [Scriptable](https://scriptable.app/).
 
-## Getting Started
+## Features
 
-```sh
-npm install
-node server.js
-```
-
-or 
-
-```sh
-docker build -t bike-share-snapshot .
-docker run -p 3000:3000 bike-share-snapshot
-```
-
-Then open `http://localhost:3000`
+- **Real-time data** - Station availability updates from the official Toronto Bike Share API
+- **Favorites** - Save stations for quick access with custom labels (e.g., "Home", "Work", "Gym")
+- **Backup stations** - Link nearby stations to your favorites so you can see alternatives at a glance
+- **Fuzzy search** - Filter stations by name to quickly find what you need
+- **Local storage** - Your favorites are stored in your browser and persist across sessions
 
 ## Using the Scriptable Widget
-- Install the free [Scriptable](https://scriptable.app/) app on your iOS device.
-- Create a new script, paste in the contents of `compact-widget.js`.
-- Adjust the `SECTIONS` array near the top of the script if you want to rename sections or target different stations (the station names must match Bike Share Toronto’s official feed).
-- Add a Small Scriptable widget to your Home Screen, choose the script you just created.
-- The widget is set to refresh every minute by the actual refresh cadance is dictated by iOS.
 
-## Customizing Stations
+1. Install the free [Scriptable](https://scriptable.app/) app on your iOS device
+2. Create a new script, paste in the contents of `compact-widget.js`
+3. Adjust the `SECTIONS` array near the top of the script to target your preferred stations (station names must match Bike Share Toronto's official feed)
+4. Add a Small Scriptable widget to your Home Screen and choose the script you created
+5. The widget refreshes roughly every minute (actual refresh cadence is controlled by iOS)
 
-Edit the `stations` in `stations.js` to change which stations are tracked or how they are grouped. Each entry supports `fullName`, `shortName`, `section`, and `isPrimary` fields.
+## Customizing Favorites
+
+In the web app:
+1. Click the star button to add a station to your favorites
+2. Click the pencil icon to add a custom label (like "Home" or "Work")
+3. Click the pin icon to select backup stations that appear grouped under your favorite
+
+Your favorites, labels, and backup stations are saved locally in your browser.
 
 Contributions are welcome!

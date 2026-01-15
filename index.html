@@ -1,0 +1,784 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+          content="connect-src 'self' https://tor.publicbikesystem.net;">
+    <title>Toronto Bike Share - Favorites</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      h1 {
+        color: #333;
+        margin-bottom: 20px;
+      }
+      .controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 14px;
+        cursor: pointer;
+        border: none;
+        border-radius: 6px;
+        background: #007bff;
+        color: white;
+        transition: background 0.2s;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 0;
+        background: #e9ecef;
+        padding: 6px;
+        border-radius: 8px 8px 0 0;
+      }
+      .tab {
+        padding: 10px 20px;
+        background: transparent;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #666;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+      .tab:hover {
+        color: #333;
+        background: rgba(255, 255, 255, 0.5);
+      }
+      .tab.active {
+        color: #007bff;
+        background: white;
+        font-weight: 600;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      }
+      .tab-note {
+        font-size: 12px;
+        color: #888;
+        margin-left: auto;
+        align-self: center;
+        padding-right: 10px;
+      }
+      .station-list {
+        background: white;
+        border-radius: 0 0 8px 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+      }
+      .station {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        border-bottom: 1px solid #eee;
+      }
+      .station:last-child {
+        border-bottom: none;
+      }
+      .station-info {
+        flex: 1;
+      }
+      .station-name {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+      }
+      .station-stats {
+        font-size: 14px;
+        color: #666;
+      }
+      .bikes {
+        color: #28a745;
+      }
+      .ebikes {
+        color: #ff9800;
+      }
+      .docks {
+        color: #007bff;
+      }
+      .favorite-btn {
+        background: none;
+        border: 2px solid #ffc107;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        padding: 0;
+        cursor: pointer;
+      }
+      .favorite-btn.favorited {
+        background: #ffc107;
+      }
+      .station-label {
+        font-size: 15px;
+        color: #007bff;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .station-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .edit-btn, .backup-btn {
+        background: none;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+        padding: 0;
+        cursor: pointer;
+        color: #666;
+      }
+      .edit-btn:hover, .backup-btn:hover {
+        background: #f5f5f5;
+        color: #333;
+      }
+      .backup-btn.has-backups {
+        border-color: #28a745;
+        color: #28a745;
+      }
+      .backup-stations {
+        margin-left: 20px;
+        border-left: 2px solid #e9ecef;
+        padding-left: 15px;
+      }
+      .backup-stations .station {
+        padding: 10px 15px;
+        background: #f9f9f9;
+      }
+      .backup-stations .station-name {
+        font-weight: 500;
+        font-size: 14px;
+      }
+      .backup-tag {
+        font-size: 11px;
+        color: #888;
+        background: #e9ecef;
+        padding: 2px 6px;
+        border-radius: 3px;
+        margin-left: 8px;
+      }
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 100;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-overlay.active {
+        display: flex;
+      }
+      .modal {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+      .modal h3 {
+        margin: 0 0 16px 0;
+        color: #333;
+      }
+      .modal-input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        margin-bottom: 16px;
+      }
+      .modal-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+      .modal-buttons button {
+        padding: 8px 16px;
+      }
+      .modal-buttons .cancel-btn {
+        background: #6c757d;
+      }
+      .backup-list {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #eee;
+        border-radius: 6px;
+        margin-bottom: 16px;
+      }
+      .backup-option {
+        display: flex;
+        align-items: center;
+        padding: 10px 12px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+      }
+      .backup-option:last-child {
+        border-bottom: none;
+      }
+      .backup-option:hover {
+        background: #f5f5f5;
+      }
+      .backup-option input {
+        margin-right: 10px;
+      }
+      .backup-option.selected {
+        background: #e3f2fd;
+      }
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+      }
+      .empty {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+      }
+      .search {
+        padding: 10px 15px;
+        font-size: 14px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        flex: 1;
+        min-width: 200px;
+      }
+      .info-section {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .info-section h2 {
+        margin: 0 0 12px 0;
+        font-size: 18px;
+        color: #333;
+      }
+      .info-section p {
+        margin: 0 0 10px 0;
+        color: #666;
+        line-height: 1.5;
+      }
+      .info-section p:last-child {
+        margin-bottom: 0;
+      }
+      .info-section ul {
+        margin: 0;
+        padding-left: 20px;
+        color: #666;
+      }
+      .info-section li {
+        margin-bottom: 6px;
+      }
+      .info-section a {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 8px 14px;
+        background: #f0f7ff;
+        border-radius: 6px;
+        transition: all 0.2s;
+      }
+      .info-section a:hover {
+        background: #e0efff;
+        color: #0056b3;
+      }
+      .info-toggle {
+        background: none;
+        border: 1px solid #ddd;
+        color: #666;
+        padding: 8px 16px;
+        font-size: 13px;
+      }
+      .info-toggle:hover {
+        background: #f5f5f5;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🚲 Toronto Bike Share</h1>
+
+    <div class="info-section" id="info-section">
+      <h2>About This App</h2>
+      <p>Track real-time bike and dock availability at Toronto Bike Share stations. Save your frequently used stations as favorites for quick access.</p>
+      <ul>
+        <li><strong>Real-time data</strong> — Station availability updates from the official Toronto Bike Share API</li>
+        <li><strong>Favorites</strong> — Click the ★ button to save stations. Your favorites are stored locally in your browser and won't sync across devices</li>
+        <li><strong>Search</strong> — Filter stations by name to quickly find what you need</li>
+      </ul>
+      <p><a href="https://github.com/alexboden/toronto-bike-share-status" target="_blank">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        View on GitHub
+      </a></p>
+    </div>
+
+    <div class="controls">
+      <input type="text" class="search" id="search" placeholder="Search stations...">
+      <button id="refresh">Refresh Data</button>
+      <button class="info-toggle" id="toggle-info">About</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="all">All Stations</button>
+      <button class="tab" data-tab="favorites">Favorites</button>
+      <span class="tab-note">Favorites are stored on your device only</span>
+    </div>
+
+    <div class="station-list" id="station-list">
+      <div class="loading">Click "Refresh Data" to load stations...</div>
+    </div>
+
+    <!-- Label Edit Modal -->
+    <div class="modal-overlay" id="label-modal">
+      <div class="modal">
+        <h3>Edit Station Label</h3>
+        <input type="text" class="modal-input" id="label-input" placeholder="e.g., Home, Work, Gym...">
+        <div class="modal-buttons">
+          <button class="cancel-btn" onclick="closeLabelModal()">Cancel</button>
+          <button onclick="saveLabel()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Backup Stations Modal -->
+    <div class="modal-overlay" id="backup-modal">
+      <div class="modal">
+        <h3>Select Backup Stations</h3>
+        <input type="text" class="modal-input" id="backup-search" placeholder="Search nearby stations...">
+        <div class="backup-list" id="backup-list"></div>
+        <div class="modal-buttons">
+          <button class="cancel-btn" onclick="closeBackupModal()">Cancel</button>
+          <button onclick="saveBackups()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Unfavorite Confirmation Modal -->
+    <div class="modal-overlay" id="unfavorite-modal">
+      <div class="modal">
+        <h3>Remove from Favorites?</h3>
+        <p id="unfavorite-message" style="color: #666; margin-bottom: 16px;">Are you sure you want to remove this station from your favorites?</p>
+        <div class="modal-buttons">
+          <button class="cancel-btn" onclick="closeUnfavoriteModal()">Cancel</button>
+          <button onclick="confirmUnfavorite()" style="background: #dc3545;">Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const FAVORITES_KEY = 'bike-share-favorites';
+      const STATION_INFO_URL = 'https://tor.publicbikesystem.net/ube/gbfs/v1/en/station_information';
+      const STATION_STATUS_URL = 'https://tor.publicbikesystem.net/ube/gbfs/v1/en/station_status';
+
+      let stations = [];
+      let favorites = loadFavorites();
+      let currentTab = Object.keys(favorites).length > 0 ? 'favorites' : 'all';
+      let searchQuery = '';
+      let editingStationId = null;
+      let tempBackups = [];
+
+      function loadFavorites() {
+        try {
+          const stored = JSON.parse(localStorage.getItem(FAVORITES_KEY));
+          // Migrate from old array format to new object format
+          if (Array.isArray(stored)) {
+            const migrated = {};
+            stored.forEach(id => {
+              migrated[id] = { label: '', backups: [] };
+            });
+            return migrated;
+          }
+          return stored || {};
+        } catch {
+          return {};
+        }
+      }
+
+      function saveFavorites() {
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+      }
+
+      let unfavoriteStationId = null;
+
+      function toggleFavorite(stationId) {
+        if (favorites[stationId]) {
+          // Show confirmation dialog before unfavoriting
+          unfavoriteStationId = stationId;
+          const station = stations.find(s => s.id === stationId);
+          const stationName = station ? station.name : 'this station';
+          document.getElementById('unfavorite-message').textContent =
+            `Are you sure you want to remove "${stationName}" from your favorites?`;
+          document.getElementById('unfavorite-modal').classList.add('active');
+        } else {
+          favorites[stationId] = { label: '', backups: [] };
+          saveFavorites();
+          renderStations();
+        }
+      }
+
+      function closeUnfavoriteModal() {
+        document.getElementById('unfavorite-modal').classList.remove('active');
+        unfavoriteStationId = null;
+      }
+
+      function confirmUnfavorite() {
+        if (unfavoriteStationId && favorites[unfavoriteStationId]) {
+          delete favorites[unfavoriteStationId];
+          saveFavorites();
+          renderStations();
+        }
+        closeUnfavoriteModal();
+      }
+
+      function isFavorite(stationId) {
+        return !!favorites[stationId];
+      }
+
+      function isBackupStation(stationId) {
+        return Object.values(favorites).some(f => f.backups.includes(stationId));
+      }
+
+      function getFavoriteLabel(stationId) {
+        return favorites[stationId]?.label || '';
+      }
+
+      function getFavoriteBackups(stationId) {
+        return favorites[stationId]?.backups || [];
+      }
+
+      // Label modal functions
+      function openLabelModal(stationId) {
+        editingStationId = stationId;
+        document.getElementById('label-input').value = getFavoriteLabel(stationId);
+        document.getElementById('label-modal').classList.add('active');
+        document.getElementById('label-input').focus();
+      }
+
+      function closeLabelModal() {
+        document.getElementById('label-modal').classList.remove('active');
+        editingStationId = null;
+      }
+
+      function saveLabel() {
+        if (editingStationId && favorites[editingStationId]) {
+          favorites[editingStationId].label = document.getElementById('label-input').value.trim();
+          saveFavorites();
+          renderStations();
+        }
+        closeLabelModal();
+      }
+
+      // Backup modal functions
+      function openBackupModal(stationId) {
+        editingStationId = stationId;
+        tempBackups = [...getFavoriteBackups(stationId)];
+        document.getElementById('backup-search').value = '';
+        renderBackupList('');
+        document.getElementById('backup-modal').classList.add('active');
+      }
+
+      function closeBackupModal() {
+        document.getElementById('backup-modal').classList.remove('active');
+        editingStationId = null;
+        tempBackups = [];
+      }
+
+      function renderBackupList(query) {
+        const listEl = document.getElementById('backup-list');
+        let available = stations.filter(s =>
+          s.id !== editingStationId && !isFavorite(s.id)
+        );
+
+        if (query) {
+          available = available
+            .map(s => ({ station: s, ...fuzzyMatch(s.name, query) }))
+            .filter(s => s.match)
+            .sort((a, b) => b.score - a.score)
+            .map(s => s.station);
+        }
+
+        // Show selected backups first, then limit others
+        const selected = available.filter(s => tempBackups.includes(s.id));
+        const others = available.filter(s => !tempBackups.includes(s.id)).slice(0, 20);
+        const toShow = [...selected, ...others];
+
+        listEl.innerHTML = toShow.map(s => `
+          <label class="backup-option ${tempBackups.includes(s.id) ? 'selected' : ''}" onclick="toggleBackup('${s.id}')">
+            <input type="checkbox" ${tempBackups.includes(s.id) ? 'checked' : ''}>
+            <span>${s.name}</span>
+          </label>
+        `).join('') || '<div style="padding: 20px; text-align: center; color: #999;">No stations available</div>';
+      }
+
+      function toggleBackup(stationId) {
+        const idx = tempBackups.indexOf(stationId);
+        if (idx === -1) {
+          tempBackups.push(stationId);
+        } else {
+          tempBackups.splice(idx, 1);
+        }
+        renderBackupList(document.getElementById('backup-search').value);
+      }
+
+      function saveBackups() {
+        if (editingStationId && favorites[editingStationId]) {
+          favorites[editingStationId].backups = tempBackups;
+          saveFavorites();
+          renderStations();
+        }
+        closeBackupModal();
+      }
+
+      document.getElementById('backup-search').addEventListener('input', (e) => {
+        renderBackupList(e.target.value);
+      });
+
+      document.getElementById('label-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') saveLabel();
+        if (e.key === 'Escape') closeLabelModal();
+      });
+
+      function fuzzyMatch(text, query) {
+        text = text.toLowerCase();
+        query = query.toLowerCase();
+
+        // Exact substring match gets highest score
+        if (text.includes(query)) {
+          return { match: true, score: 100 + (query.length / text.length) * 50 };
+        }
+
+        // Fuzzy matching: check if all query chars appear in order
+        let textIdx = 0;
+        let queryIdx = 0;
+        let score = 0;
+        let consecutiveBonus = 0;
+
+        while (textIdx < text.length && queryIdx < query.length) {
+          if (text[textIdx] === query[queryIdx]) {
+            score += 10 + consecutiveBonus;
+            consecutiveBonus += 5; // Reward consecutive matches
+            queryIdx++;
+          } else {
+            consecutiveBonus = 0;
+          }
+          textIdx++;
+        }
+
+        // All query characters must be found
+        if (queryIdx === query.length) {
+          // Penalize long gaps between matches
+          const matchRatio = query.length / text.length;
+          score += matchRatio * 20;
+          return { match: true, score };
+        }
+
+        return { match: false, score: 0 };
+      }
+
+      async function fetchStations() {
+        const listEl = document.getElementById('station-list');
+        listEl.innerHTML = '<div class="loading">Loading stations...</div>';
+
+        try {
+          const [infoRes, statusRes] = await Promise.all([
+            fetch(STATION_INFO_URL),
+            fetch(STATION_STATUS_URL)
+          ]);
+
+          const infoData = await infoRes.json();
+          const statusData = await statusRes.json();
+
+          const stationInfo = {};
+          infoData.data.stations.forEach(s => {
+            stationInfo[s.station_id] = s;
+          });
+
+          stations = statusData.data.stations.map(s => {
+            const bikeTypes = s.vehicle_types_available || [];
+            const mechanical = bikeTypes.find(v => v.vehicle_type_id === 'ICONIC')?.count || 0;
+            const ebikes = bikeTypes.find(v => v.vehicle_type_id === 'BOOST' || v.vehicle_type_id === 'EFIT' || v.vehicle_type_id === 'EFIT_G5')?.count ||
+                           bikeTypes.filter(v => v.vehicle_type_id !== 'ICONIC').reduce((sum, v) => sum + v.count, 0);
+            return {
+              id: s.station_id,
+              name: stationInfo[s.station_id]?.name || `Station ${s.station_id}`,
+              bikes: s.num_bikes_available,
+              mechanical,
+              ebikes,
+              docks: s.num_docks_available,
+              isRenting: s.is_renting,
+              isReturning: s.is_returning
+            };
+          }).sort((a, b) => a.name.localeCompare(b.name));
+
+          renderStations();
+        } catch (error) {
+          listEl.innerHTML = `<div class="empty">Error loading stations: ${error.message}</div>`;
+        }
+      }
+
+      function renderStations() {
+        const listEl = document.getElementById('station-list');
+
+        let filtered = stations;
+
+        if (currentTab === 'favorites') {
+          filtered = stations.filter(s => isFavorite(s.id));
+        }
+
+        if (searchQuery) {
+          filtered = filtered
+            .map(s => ({ station: s, ...fuzzyMatch(s.name, searchQuery) }))
+            .filter(s => s.match)
+            .sort((a, b) => b.score - a.score)
+            .map(s => s.station);
+        }
+
+        if (filtered.length === 0) {
+          if (currentTab === 'favorites' && Object.keys(favorites).length === 0) {
+            listEl.innerHTML = '<div class="empty">No favorite stations yet. Click the ★ button to add favorites.</div>';
+          } else if (searchQuery) {
+            listEl.innerHTML = '<div class="empty">No stations match your search.</div>';
+          } else {
+            listEl.innerHTML = '<div class="empty">No stations to display.</div>';
+          }
+          return;
+        }
+
+        listEl.innerHTML = filtered.map(station => {
+          const label = getFavoriteLabel(station.id);
+          const backupIds = getFavoriteBackups(station.id);
+          const backupStations = backupIds.map(id => stations.find(s => s.id === id)).filter(Boolean);
+          const isFav = isFavorite(station.id);
+
+          let html = `
+            <div class="station">
+              <div class="station-info">
+                ${label ? `<div class="station-label">${label}</div>` : ''}
+                <div class="station-name">${station.name}</div>
+                <div class="station-stats">
+                  <span class="bikes">🚲 ${station.mechanical}</span> ·
+                  <span class="ebikes">⚡ ${station.ebikes}</span> ·
+                  <span class="docks">🅿️ ${station.docks}</span>
+                </div>
+              </div>
+              <div class="station-actions">
+                ${isFav && currentTab === 'favorites' ? `
+                  <button class="edit-btn" onclick="openLabelModal('${station.id}')" title="Edit label">✏️</button>
+                  <button class="backup-btn ${backupIds.length > 0 ? 'has-backups' : ''}" onclick="openBackupModal('${station.id}')" title="Manage backup stations">📍</button>
+                ` : ''}
+                <button class="favorite-btn ${isFav ? 'favorited' : ''}"
+                        onclick="toggleFavorite('${station.id}')">
+                  ★
+                </button>
+              </div>
+            </div>
+          `;
+
+          // Add backup stations if in favorites tab
+          if (currentTab === 'favorites' && backupStations.length > 0) {
+            html += `<div class="backup-stations">`;
+            backupStations.forEach(backup => {
+              html += `
+                <div class="station">
+                  <div class="station-info">
+                    <div class="station-name">${backup.name}<span class="backup-tag">backup</span></div>
+                    <div class="station-stats">
+                      <span class="bikes">🚲 ${backup.mechanical}</span> ·
+                      <span class="ebikes">⚡ ${backup.ebikes}</span> ·
+                      <span class="docks">🅿️ ${backup.docks}</span>
+                    </div>
+                  </div>
+                </div>
+              `;
+            });
+            html += `</div>`;
+          }
+
+          return html;
+        }).join('');
+      }
+
+      // Tab switching
+      function updateTabUI() {
+        document.querySelectorAll('.tab').forEach(t => {
+          t.classList.toggle('active', t.dataset.tab === currentTab);
+        });
+      }
+
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          currentTab = tab.dataset.tab;
+          updateTabUI();
+          renderStations();
+        });
+      });
+
+      // Set initial tab UI
+      updateTabUI();
+
+      // Search
+      document.getElementById('search').addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        renderStations();
+      });
+
+      // Refresh button
+      document.getElementById('refresh').addEventListener('click', fetchStations);
+
+      // Info section toggle
+      const INFO_VISIBLE_KEY = 'bike-share-info-visible';
+      const infoSection = document.getElementById('info-section');
+      const toggleInfoBtn = document.getElementById('toggle-info');
+
+      function updateInfoVisibility() {
+        const isVisible = localStorage.getItem(INFO_VISIBLE_KEY) === 'true';
+        infoSection.style.display = isVisible ? 'block' : 'none';
+        toggleInfoBtn.textContent = isVisible ? 'Hide About' : 'About';
+      }
+
+      updateInfoVisibility();
+
+      toggleInfoBtn.addEventListener('click', () => {
+        const isVisible = localStorage.getItem(INFO_VISIBLE_KEY) === 'true';
+        localStorage.setItem(INFO_VISIBLE_KEY, isVisible ? 'false' : 'true');
+        updateInfoVisibility();
+      });
+
+      // Load on page load
+      fetchStations();
+    </script>
+  </body>
+</html>

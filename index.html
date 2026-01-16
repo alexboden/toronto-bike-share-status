@@ -116,6 +116,9 @@
       .docks {
         color: #007bff;
       }
+      .updated {
+        color: #888;
+      }
       .favorite-btn {
         background: none;
         border: 2px solid #ffc107;
@@ -571,6 +574,24 @@
         if (e.key === 'Escape') closeLabelModal();
       });
 
+      function formatRelativeTime(timestamp) {
+        if (!timestamp) return '';
+        const now = Math.floor(Date.now() / 1000);
+        const diff = now - timestamp;
+
+        if (diff < 60) return 'just now';
+        if (diff < 3600) {
+          const mins = Math.floor(diff / 60);
+          return `${mins} min${mins === 1 ? '' : 's'} ago`;
+        }
+        if (diff < 86400) {
+          const hours = Math.floor(diff / 3600);
+          return `${hours} hr${hours === 1 ? '' : 's'} ago`;
+        }
+        const days = Math.floor(diff / 86400);
+        return `${days} day${days === 1 ? '' : 's'} ago`;
+      }
+
       function fuzzyMatch(text, query) {
         text = text.toLowerCase();
         query = query.toLowerCase();
@@ -639,7 +660,8 @@
               ebikes,
               docks: s.num_docks_available,
               isRenting: s.is_renting,
-              isReturning: s.is_returning
+              isReturning: s.is_returning,
+              lastReported: s.last_reported
             };
           }).sort((a, b) => a.name.localeCompare(b.name));
 
@@ -692,6 +714,7 @@
                   <span class="bikes">🚲 ${station.mechanical}</span> ·
                   <span class="ebikes">⚡ ${station.ebikes}</span> ·
                   <span class="docks">🅿️ ${station.docks}</span>
+                  ${station.lastReported ? `· <span class="updated">🕐 ${formatRelativeTime(station.lastReported)}</span>` : ''}
                 </div>
               </div>
               <div class="station-actions">
@@ -719,6 +742,7 @@
                       <span class="bikes">🚲 ${backup.mechanical}</span> ·
                       <span class="ebikes">⚡ ${backup.ebikes}</span> ·
                       <span class="docks">🅿️ ${backup.docks}</span>
+                      ${backup.lastReported ? `· <span class="updated">🕐 ${formatRelativeTime(backup.lastReported)}</span>` : ''}
                     </div>
                   </div>
                 </div>
